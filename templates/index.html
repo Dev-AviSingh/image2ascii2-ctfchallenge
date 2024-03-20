@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <script>
+        function submitImage(event){
+			event.preventDefault();
+			
+			// var image = document.getElementById("image").files[0];
+			var form =  document.getElementsByTagName("form")[0];
+			console.log(form);
+			const formData = new FormData(form);
+
+			const fetchOptions = {
+				method: "post",
+				body:formData
+			};
+
+			fetch("/convert", fetchOptions).then(res => res.text()).then(data => {
+				updateArts();
+			});
+			
+		}
+        function appendAsciiArt(asciiText, url){
+            let asciiArt = document.createElement("div");
+            asciiArt.classList.add("asciiArt");
+
+            let ascii = document.createElement("div");
+            ascii.classList.add("ascii");
+            ascii.innerHTML = `<pre>${asciiText}</pre>`;
+            let image = document.createElement("img");
+            image.src = url;
+            image.width = "400";
+            image.classList.add("original");
+
+            asciiArt.appendChild(ascii);
+            asciiArt.appendChild(image);
+
+            document.getElementById("asciiArtsContainer").appendChild(asciiArt);
+
+        }
+        function updateArts(){
+            console.log("fetching");
+            fetch("/getAsciiArts")
+            .then(data => data.json())
+            .then(jsonData => {
+                console.log(jsonData);
+                document.getElementById("asciiArtsContainer").innerHTML = "";
+                for(let aa of jsonData){
+                    appendAsciiArt(aa.ascii, `/originalImage/${aa.imageName}`);
+                }
+            });
+        }
+        </script>
+        <style>
+            body{
+                color: white;
+                background-color: black;
+                padding: 0;
+                margin: 0;
+            }
+            .header{
+                width: 100%;
+                color: white;
+                text-align: center;
+                height: 2em;
+                display: flex;
+                align-items: center;
+                align-content: space-between;
+            }
+            #asciiArtsContainer{
+                width: calc(100% - 60px);
+                min-height: calc(100% - 2em);
+                background-color: rgb(20, 20, 20);
+                display: inline-block;
+                padding: 30px;
+            }
+            .asciiArt{
+                padding: 10px;
+                text-align: justify;
+                display: flex;
+                justify-content: space-between;
+            }
+            .ascii{
+                display: inline-block;
+                font-size: 2px;
+            }
+            .original{
+                display: inline-block;
+            }
+            #uploadImageContainer{
+                background-color: rgb(20, 20, 20);
+            }
+            #uploadImageForm{
+                padding: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class = "header">
+            <div style="display: flexbox;margin: 5px;">Ascii Art Museum</div>
+            <div style="display: flexbox;float: right;margin: 5px;" onclick="updateArts()" id = "refreshButton">Refresh</div>
+        </div>
+        <div id="uploadImageContainer">
+            <form id="uploadImageForm" action = "/convert" method = "post"  enctype="multipart/form-data">
+                <label for="image">Image to Convert</label>
+                <input id="image" type="file" name = "image" />
+            
+                <input id="submitButton" type = "submit" value="submit"/>
+                <!-- <button id = "submitButton" onclick="submitImage()">Convert</button> -->
+            </form>
+        </div>
+        <div id = "asciiArtsContainer">
+        </div>
+        <script>
+		    document.getElementById("uploadImageForm").addEventListener("submit", submitImage);
+            updateArts();
+        </script>
+    </body>
+</html>
