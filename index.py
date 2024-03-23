@@ -4,8 +4,12 @@ import traceback
 import os
 from datetime import datetime
 from typing import TypedDict
-import asyncio
-from pyppeteer import launch
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+from threading import Thread
 app = Flask(__name__)
 app.secret_key = r"CTF{Damn_You_Win}"
 # Define ASCII characters for different luminance levels
@@ -47,18 +51,20 @@ def image_to_ascii(image_path, output_width=100, ascii_chars=ASCII_CHARS):
         raise
 
 
-async def runBot():
-    browser = await launch()
-    page = await browser.newPage()
-    await page.goto(f"http://{URL}:{PORT}/")
-    refreshButton = await page.querySelector("#refreshButton")
-    await page.click(refreshButton)
-    await page.cookies({
-        "flag":app.secret_key
-    })
-    await page.waitFor(5)
-    await page.screenshot({'path': 'example.png'})
-    await browser.close()
+def runBot():
+    options = Options()
+    options.add_argument("--headless")
+    driver = webdriver.Firefox(options=options)
+    print("Bot started.")
+    driver.get("http://127.0.0.1:5000/")
+    driver.add_cookie({"name":"flag", "value":str(app.secret_key)})
+    
+
+    button = driver.find_element(By.ID, "refreshButton")
+    button.click()
+    driver.implicitly_wait(5)
+    driver.close()
+    print("Bot closed.")
 
 
 @app.route('/convert', methods=['POST'])
@@ -92,7 +98,7 @@ def convert_image():
         ascii_art = image_to_ascii(imagePath)
         asciiArts.append(AsciiArt(ascii = ascii_art, imageName = image_file.filename))
 
-        asyncio.run(runBot())
+        Thread(target = runBot).start()
         return jsonify({"status":"Successfully Converted"})
 
     except Exception as e:
