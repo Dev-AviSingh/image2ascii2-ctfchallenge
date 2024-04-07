@@ -11,13 +11,16 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from threading import Thread
 app = Flask(__name__)
-app.secret_key = r"CTF{Damn_You_Win}"
+app.secret_key = r"0ctf{XSS_w1th_extra_st3ps}"
 # Define ASCII characters for different luminance levels
 ASCII_CHARS = r'''@&%QWNM0gB$#DR8mHXKAUbGOpV4d9h6PkqwSE2]ayjxY5Zoen[ult13If}C{iF|(7J)vTLs?z/*cr!+<>;=^,_:'-.`'''
-URL, PORT = "127.0.0.1", 5000
+URL, PORT = "0.0.0.0", 5000
 class AsciiArt(TypedDict):
     ascii:str
     imageName:str
+
+if not os.path.exists("original_images"):
+    os.mkdir("original_images")
 
 asciiArts:list[AsciiArt] = []
 
